@@ -255,6 +255,7 @@ def build(key: str = "D", bpm: float = 72.0, bars: int | None = 12, sr: int = SR
     else:
         root_name, quality = key, "maj"
     scale = MAJOR if quality == "maj" else MINOR
+    is_minor_key = quality == "min"
     root = midi_of(root_name + "3")
 
     def deg(d: int, octave: int = 0) -> int:
@@ -281,6 +282,7 @@ def build(key: str = "D", bpm: float = 72.0, bars: int | None = 12, sr: int = SR
         section_of_bar.extend([name] * n)
         bar_in_section.extend(range(n))
     bars = len(section_of_bar)
+    SECTION_BARS = dict(form)
 
     beat = 60.0 / bpm
     bar = 4 * beat
@@ -317,7 +319,7 @@ def build(key: str = "D", bpm: float = 72.0, bars: int | None = 12, sr: int = SR
         for hit, g in ((0.0, 1.0), (2.0, 0.8)):
             for k, m in enumerate(ch):
                 # root stays low for body, upper voices move up an octave for clarity
-                note = m if k == 0 else m + 12
+                note = m if k == 0 else (m + 12 if k == 1 else m + 24)
                 add(felt_piano(hz(note), 2.6, sr), t0 + hit * beat, pan=-0.15 + 0.12 * k, gain=g)
         if section in ("chorus", "outro"):
             for m in ch:
@@ -325,10 +327,42 @@ def build(key: str = "D", bpm: float = 72.0, bars: int | None = 12, sr: int = SR
         if section == "chorus":
             add(felt_piano(hz(ch[2] + 12), 1.4, sr), t0 + 3.0 * beat, pan=0.1, gain=0.6)
 
-        # ---- upright-style bass
-        if section in ("verse", "chorus"):
-            for pos, g in ((0.0, 1.0), (2.0, 0.85), (3.5, 0.7)):
-                add(bass(hz(bass_note), 1.5, sr), t0 + pos * beat, gain=g)
+        # ---- upright-style bass: a real line, not a repeated root.
+        # Each bar walks to the NEXT chord, so the harmony is always being led somewhere.
+        root_m = ch[0] - 12
+        nxt_root = chord_of_bar_fn(bis + 1)[0] - 12
+        third = root_m + (3 if is_minor_key else 4)
+        fifth = root_m + 7
+        octave = root_m + 12
+        leading = nxt_root - 1 if nxt_root > root_m else nxt_root + 1   # chromatic approach
+        # keep the approach note inside the instrument's range
+        while leading < root_m - 6:
+            leading += 12
+        while leading > root_m + 14:
+            leading -= 12
+
+        if section == "intro":
+            line = [(0.0, root_m, 1.0), (2.0, fifth, 0.62)]
+        elif section == "verse":
+            line = [(0.0, root_m, 1.0), (1.5, root_m, 0.68),
+                    (2.5, fifth, 0.80), (3.5, leading, 0.72)]
+        elif section == "chorus":
+            line = [(0.0, root_m, 1.0), (0.75, root_m, 0.76), (1.5, fifth, 0.84),
+                    (2.0, octave, 0.88), (2.75, fifth, 0.72), (3.5, leading, 0.86)]
+        elif section == "bridge":
+            line = [(0.0, root_m, 0.95), (1.0, third, 0.66), (2.0, fifth, 0.84),
+                    (3.0, octave, 0.80), (3.5, leading, 0.74)]
+        else:                                   # outro
+            line = [(0.0, root_m, 0.90), (2.0, fifth, 0.58)]
+
+        for pos, note, g in line:
+            add(bass(hz(note), 1.5, sr), t0 + pos * beat, gain=g)
+
+        # run into the next section: root - third - fifth - octave on the last bar
+        if bis == SECTION_BARS[section] - 1 and section in ("verse", "chorus", "bridge"):
+            for i, (note, g) in enumerate(((root_m, 0.7), (third, 0.72),
+                                           (fifth, 0.76), (octave, 0.82))):
+                add(bass(hz(note), 1.2, sr), t0 + (3.0 + i * 0.25) * beat, gain=g)
 
         # ---- cajon + brushes instead of a drum kit
         if section in ("verse", "chorus"):
@@ -345,8 +379,8 @@ def build(key: str = "D", bpm: float = 72.0, bars: int | None = 12, sr: int = SR
         # ---- strings and pad swell on the chorus
         if section == "chorus":
             for m in ch:
-                add(strings(hz(m), bar * 0.98, sr), t0, pan=-0.55, gain=0.9)
-                add(strings(hz(m + 12), bar * 0.98, sr), t0 + 0.01, pan=0.55, gain=0.5)
+                add(strings(hz(m + 12), bar * 0.98, sr), t0, pan=-0.55, gain=0.9)
+                add(strings(hz(m + 24), bar * 0.98, sr), t0 + 0.01, pan=0.55, gain=0.5)
             for m in ch:
                 add(pad(hz(m + 12), bar * 1.05, sr), t0, pan=0.0, gain=0.8)
         elif section == "outro":
@@ -356,6 +390,8 @@ def build(key: str = "D", bpm: float = 72.0, bars: int | None = 12, sr: int = SR
     audio = bus.buf[: int(total * sr)]
     from enhance_audio import _biquad
     from scipy import signal as _sig
+    audio = _sig.sosfiltfilt(_biquad("peak", sr, 330.0, -3.0, 1.0)[None, :], audio, axis=0)
+    audio = _sig.sosfiltfilt(_biquad("peak", sr, 3000.0, 2.5, 1.2)[None, :], audio, axis=0)
     audio = _sig.sosfiltfilt(_biquad("highshelf", sr, 4000.0, 4.0, 0.707)[None, :], audio, axis=0)
     audio = reverb(audio, sr, seconds=2.4, wet=0.26)
     audio -= audio.mean(axis=0, keepdims=True)

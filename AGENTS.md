@@ -287,6 +287,12 @@ python3 scripts/build_worship_set.py              # ~3 min full render
 python3 scripts/build_worship_set.py --reuse      # rejoin existing tracks, ~15 s
 ```
 
+The bass walks to the next chord rather than repeating the root (root/fifth in the verse,
+octave pops in the chorus, a third in the bridge, chromatic approach notes into every
+change, and a root-third-fifth-octave run on the last bar of each section). Adding that
+movement pushed 250–500 Hz up to 38% — the fix was voicing the piano's top note two
+octaves up, lifting the strings an octave, and a −3 dB peak at 330 Hz.
+
 Each section restarts the chord loop on its own tonic; the final chorus runs at 1.12x
 energy and the bridge builds from 0.85x, which gives roughly 10 dB of dynamic range.
 Tempos are set explicitly in the `SET` table — charts almost never carry one (577 of

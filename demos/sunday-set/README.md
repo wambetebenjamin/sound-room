@@ -21,9 +21,26 @@ Each section restarts the chord loop on its own tonic. The final chorus carries 
 energy, the bridge builds from 0.85×, so the set has a **9.9 dB dynamic range** instead
 of sitting flat like a loop.
 
+## The bass line
+
+The bass is not a repeated root — it walks into every chord change:
+
+| Section | Line |
+| --- | --- |
+| Intro | root, then the fifth |
+| Verse | root · root · fifth · **chromatic approach** to the next root |
+| Chorus | root · root · fifth · **octave** · fifth · approach |
+| Bridge | root · **third** · fifth · **octave** · approach |
+| Last bar of a section | run up root → third → fifth → octave |
+
+The approach note is a semitone below (or above) the next chord's root, so the harmony
+is always being led somewhere. Measured on the loop: **14 distinct bass pitches** where
+the old line had 1.
+
 ## Master
-Complete set: **−14.6 LUFS · −1.05 dBTP**. Splice points measured at −29.7 dB local
-sample jump, so the crossfades are clean (no clicks).
+Complete set: **−14.2 LUFS · −1.15 dBTP**. Splice points measured at −26.7 dB and
+−27.0 dB local sample jump, so the crossfades are clean (no clicks). Dynamic range
+7.5 dB across the set.
 
 ## Regenerate
 ```bash
