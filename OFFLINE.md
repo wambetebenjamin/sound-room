@@ -52,6 +52,16 @@ That is the only test that counts.
 
 ---
 
+## 2b. The offline pitch bundle (one file, no internet)
+
+```bash
+python3 scripts/make_offline_bundle.py        # -> demos/offline-demo.zip (~3 MB)
+```
+
+Unzip it anywhere, double-click `index.html`, switch the wifi off. The page has **zero
+external references** (the script verifies this and fails the build if one appears), so it
+plays a demo set plus a three-minute presentation script straight from a USB stick.
+
 ## 3. What to bring
 
 - Laptop **already charged + charger** (audio work drains fast)

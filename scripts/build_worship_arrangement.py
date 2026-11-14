@@ -43,6 +43,29 @@ def midi_of(name: str) -> int:
     return 12 * (int(name[-1]) + 1) + OFFSET[name[:-1]]
 
 
+def parse_chord(sym: str) -> tuple[int, bool]:
+    """'Em' -> (4, True); 'D/F#' -> (2, False); 'Dsus4' -> (2, False)."""
+    s = sym.strip().split("/")[0]
+    letter, rest = s[0].upper(), s[1:]
+    acc = 0
+    while rest and rest[0] in "#b":
+        acc += 1 if rest[0] == "#" else -1
+        rest = rest[1:]
+    is_minor = rest.startswith("m") and not rest.startswith("maj")
+    return (OFFSET[letter] + acc) % 12, is_minor
+
+
+def chord_voicing(sym: str, key_root_midi: int) -> list[int]:
+    """Voice a chord symbol as a triad near the key's register."""
+    pc, is_minor = parse_chord(sym)
+    m = 48 + pc
+    while m < key_root_midi - 6:
+        m += 12
+    while m > key_root_midi + 10:
+        m -= 12
+    return [m, m + (3 if is_minor else 4), m + 7]
+
+
 def noise(n: int) -> np.ndarray:
     return RNG.standard_normal(n)
 
@@ -216,7 +239,8 @@ class Bus:
         self.buf[i:e, 1] += seg * np.sin((pan + 1) * np.pi / 4)
 
 
-def build(key: str = "D", bpm: float = 72.0, bars: int = 12, sr: int = SR) -> np.ndarray:
+def build(key: str = "D", bpm: float = 72.0, bars: int = 12, sr: int = SR,
+          chords: list[str] | None = None) -> np.ndarray:
     if key.lower().endswith("min"):
         root_name, quality = key[:-3], "min"
     elif key.lower().endswith("maj"):
@@ -235,6 +259,14 @@ def build(key: str = "D", bpm: float = 72.0, bars: int = 12, sr: int = SR) -> np
         return [deg(d), deg(d + 2), deg(d + 4)]
 
     prog = [0, 4, 5, 3]                     # I - V - vi - IV  (D A Bm G in D)
+
+    if chords:
+        # explicit progression from a chord chart (progressions are not copyrightable;
+        # the chart's lyrics and melody are the publisher's and are never reproduced here)
+        seq = [chord_voicing(c, root) for c in chords]
+        chord_of_bar_fn = lambda b: seq[b % len(seq)]
+    else:
+        chord_of_bar_fn = lambda b: chord(prog[b % 4])
     beat = 60.0 / bpm
     bar = 4 * beat
     total = bars * bar
@@ -244,7 +276,7 @@ def build(key: str = "D", bpm: float = 72.0, bars: int = 12, sr: int = SR) -> np
         t0 = b * bar
         section = ("intro" if b < 2 else "verse" if b < bars // 2 else
                    "chorus" if b < bars - 2 else "outro")
-        ch = chord(prog[b % 4])
+        ch = chord_of_bar_fn(b)
         bass_note = ch[0] - 12
 
         # ---- fingerpicked acoustic guitar (always present)

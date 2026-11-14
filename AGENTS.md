@@ -261,6 +261,27 @@ first and generate in that key — a semitone clash is the worst failure mode.
 `tools/worship-charts` has 677 reference chord charts, but those songs stay the
 publishers' copyright; use them to learn structure, not to redistribute.
 
+**From a chord chart — `scripts/backing_from_chart.py`**
+
+Reads key, tempo and the chord loop out of an `.onsong`/ChordPro chart (677 of them live in
+`tools/worship-charts`) and renders a matching acoustic backing:
+
+```bash
+python3 scripts/backing_from_chart.py "tools/worship-charts/10000 Reasons.onsong" \
+  -o out/music/backing.wav --bars 12        # -> G major, 73 BPM, C-G-D/F#-Em
+python3 scripts/backing_from_chart.py --list    # browse the charts
+```
+
+It reads **only** metadata and chord symbols. Lyrics and melody stay the publisher's
+copyright and are never read into the output; chord progressions themselves are not
+copyrightable. See `LICENSES.md` before releasing anything built this way.
+
+**Offline presentations — `scripts/make_offline_bundle.py`**
+
+Builds `demos/offline-demo.zip`: a self-contained `index.html` player plus the audio and
+the offline guide, with zero external references so it runs from a USB stick with no
+internet. It verifies that claim and fails if any remote URL sneaks in.
+
 `build_voice_track.py` does the end-to-end version of this for a voice memo: it cleans
 the vocal, picks a bed loop by measured tempo/key/chroma match, arranges intro/vocal/outro
 on bar boundaries, ducks the bed under the vocal and masters to −14 LUFS.
