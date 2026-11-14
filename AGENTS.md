@@ -222,6 +222,10 @@ python3 scripts/enhance_audio.py public/music/uploads/<song>.mp3 \
 python3 scripts/analyze_audio.py out/music/<song-slug>-master.wav
 ```
 
+`build_voice_track.py` does the end-to-end version of this for a voice memo: it cleans
+the vocal, picks a bed loop by measured tempo/key/chroma match, arranges intro/vocal/outro
+on bar boundaries, ducks the bed under the vocal and masters to −14 LUFS.
+
 `enhance_audio.py` runs: corrective EQ → harmonic excitation → stereo repair → glue
 compression → loudness normalisation to a **true-peak** ceiling. Presets are
 `neutral`, `amapiano_balanced`, `amapiano_lift`, `bright`, `warm`.
