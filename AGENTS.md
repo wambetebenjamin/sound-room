@@ -27,7 +27,7 @@ Re-create `tools/` at any time with `./scripts/setup-tools.sh`.
 
 ## 2. Vendored tools
 
-`tools/` holds nine cloned repositories. Each keeps its own license, `.git` directory,
+`tools/` holds thirteen cloned repositories. Each keeps its own license, `.git` directory,
 and upstream history; treat them as read-only dependencies.
 
 | Directory | Upstream | Role |
@@ -41,6 +41,9 @@ and upstream history; treat them as read-only dependencies.
 | `tools/claude-ai-music-skills` | `bitwize-music-studio/claude-ai-music-skills` | Mix/master skill rules + `mix_tracks.py` |
 | `tools/amapiano-inspired` | `mizcausevic-dev/amapiano-inspired` | Amapiano MIDI studies (28 files, 112 BPM) + drum map + patch recipes |
 | `tools/Amapiano-Beatpad` | `Eazyguy/Amapiano-Beatpad` | 12 Amapiano beat loops (`.m4a`), MIT — playable via `index.html` |
+| `tools/church-music-generator` | `nrutman/church-music-generator` | Chord/lyric sheets + service binders, **MIT** |
+| `tools/ambientpad` | `OliverGentina/ambientpad` | 24 worship pads as an offline-capable PWA — **no licence: live use only, never sample it into a release** |
+| `tools/Le-Phonk` | `Speechrezz/Le-Phonk` | Phonk distortion plugin, **MIT** — needs a DAW, not usable headless |
 
 Run `./scripts/setup-tools.sh` if `tools/` is empty or a directory is missing.
 
@@ -221,6 +224,22 @@ python3 scripts/enhance_audio.py public/music/uploads/<song>.mp3 \
 # 3. Re-measure the output and confirm the fix
 python3 scripts/analyze_audio.py out/music/<song-slug>-master.wav
 ```
+
+`build_original_beat.py` synthesises a complete backing track from code — kick, clap, hats,
+shaker, log drum, 808, electric piano, pad, bell and cowbell — so the result is 100% your own
+production with no third-party audio. Use it when a track must be copyright-clean:
+
+```bash
+python3 scripts/build_original_beat.py -o public/music/beats/song.wav --bpm 114.8 --key Gm --bars 20
+python3 scripts/build_voice_track.py --voice public/music/uploads/song.mp3 \
+  --bed public/music/beats/song.wav -o out/music/song.wav --bpm 114.8 \
+  --no-bed-eq --bed-start 0          # --no-bed-eq: the synth is already balanced
+```
+
+**Copyright rule:** a track is only "ours" if every sound came from code or from a repo whose
+licence permits commercial use (MIT). Do not ship anything built from unlicensed sample packs
+(e.g. `Phonk_Producer_Toolkit`), and never sample `tools/ambientpad` into a release.
+See `OFFLINE.md` for running this with no internet, and `scripts/offline_check.py` to verify.
 
 `build_voice_track.py` does the end-to-end version of this for a voice memo: it cleans
 the vocal, picks a bed loop by measured tempo/key/chroma match, arranges intro/vocal/outro

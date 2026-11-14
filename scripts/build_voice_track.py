@@ -173,6 +173,9 @@ def main() -> int:
     ap.add_argument("--target-lufs", type=float, default=-14.0)
     ap.add_argument("--ceiling", type=float, default=-1.0)
     ap.add_argument("--bed-gain", type=float, default=0.7, help="bed RMS relative to vocal")
+    ap.add_argument("--bed-start", type=float, default=30.0, help="search bed from this second")
+    ap.add_argument("--no-bed-eq", action="store_true",
+                    help="skip corrective EQ (use for our own synthesised beats)")
     args = ap.parse_args()
 
     beat_sec = 60.0 / args.bpm
@@ -189,9 +192,11 @@ def main() -> int:
     intro = int(round(args.bars_intro * bar_sec * SR))
     outro = int(round(args.bars_outro * bar_sec * SR))
     total = intro + len(vocal) + outro
-    bed = prep_bed(pick_section(decode_any(args.bed), SR, total / SR), SR)
+    bed = pick_section(decode_any(args.bed), SR, total / SR, search_from=args.bed_start)
+    if not args.no_bed_eq:
+        bed = prep_bed(bed, SR)
     # widen the bed only (the vocal is mono, so widening it would just smear the centre)
-    bed = E.stereo(bed, SR, replace(E.PRESETS["neutral"], width=1.45, mono_bass_hz=120.0))
+    bed = E.stereo(bed, SR, replace(E.PRESETS["neutral"], width=1.6, mono_bass_hz=100.0))
     if len(bed) < total:                       # pad, or trim rounding overshoot
         bed = np.vstack([bed, np.zeros((total - len(bed), 2))])
     bed = bed[:total]

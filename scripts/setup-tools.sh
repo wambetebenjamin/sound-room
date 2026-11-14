@@ -28,6 +28,10 @@ PINNED=(
   # Amapiano-specific additions
   "amapiano-inspired|https://github.com/mizcausevic-dev/amapiano-inspired.git|13d3dc2c84797a03f01d98eb42895479d344d2c5|main|"
   "Amapiano-Beatpad|https://github.com/Eazyguy/Amapiano-Beatpad.git|56ae185d9d854fc8e005b34f0453ee25ff00892c|main|"
+  # Worship / phonk additions (see AGENTS.md for licence notes)
+  "church-music-generator|https://github.com/nrutman/church-music-generator.git|9f3714ca4f0be4c4fec9d9c3db7c878376da9ed1|main|"
+  "ambientpad|https://github.com/OliverGentina/ambientpad.git|218f5ea76262dd5efb362bb99eceb2e8a53c5d21|main|--depth 1"
+  "Le-Phonk|https://github.com/Speechrezz/Le-Phonk.git|36b9b61673e5fab531b4779712c2faf01f4e3fae|main|"
 )
 
 mkdir -p "$TOOLS"
