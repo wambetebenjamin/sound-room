@@ -203,6 +203,41 @@ loudness/streaming targets (`matchering`, `pyloudnorm`).
 **Export rule:** the finished track goes to `out/music/` as
 `<song-slug>_mix.wav` (or `.mp3`). Always report the output path and the bpm/key used.
 
+### Rule 4 — "Amplify this" (single-file enhancement, no stems needed)
+
+When the ask is simply *"make this sound better/louder"* on one file, do not reach for
+stem separation. Measure first, then correct — never guess at the chain.
+
+```bash
+pip install -r requirements-music.txt          # CPU-only, ~60 MB, no GPU needed
+
+# 1. Diagnose: loudness, true peak, band balance, stereo width, tempo, key
+python3 scripts/analyze_audio.py public/music/uploads/<song>.mp3
+
+# 2. Apply the chain (see presets in the script) and render a 24-bit master
+python3 scripts/enhance_audio.py public/music/uploads/<song>.mp3 \
+  -o out/music/<song-slug>-master.wav --preset amapiano_balanced --report
+
+# 3. Re-measure the output and confirm the fix
+python3 scripts/analyze_audio.py out/music/<song-slug>-master.wav
+```
+
+`enhance_audio.py` runs: corrective EQ → harmonic excitation → stereo repair → glue
+compression → loudness normalisation to a **true-peak** ceiling. Presets are
+`neutral`, `amapiano_balanced`, `amapiano_lift`, `bright`, `warm`.
+
+Rules of thumb learned the hard way:
+- **Bass owns the peak ceiling.** On bass-heavy material you cannot reach -14 LUFS at
+  -1 dBTP without distorting the low end; ~-15 LUFS cleanly is the honest result.
+  Do not force it — and never report a loudness you did not measure.
+- **The limiter must be true-peak, not sample-peak.** Sample-peak limiting leaves
+  inter-sample overshoots that platforms later clip.
+- **Tune presets against measurements**, not by ear-by-proxy: sweep one parameter and
+  re-measure band balance before committing.
+- Targets: ~-14 LUFS integrated (streaming), ≤ -1.0 dBTP, 40–55% of energy below
+  250 Hz for bass-forward genres, and >2% above 8 kHz so it is not dull.
+- Always write a short before/after report next to the output.
+
 ---
 
 ## 4. Working notes

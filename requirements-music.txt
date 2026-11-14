@@ -1,0 +1,12 @@
+# Dependencies for scripts/analyze_audio.py and scripts/enhance_audio.py.
+# Install with:  pip install -r requirements-music.txt
+#
+# Deliberately CPU-only and small (~60 MB) so the analysis/mastering chain runs
+# on a laptop with no GPU. Stem separation (tools/stem-separator) and MusicGen
+# (tools/audiocraft) need torch and are installed separately per tool.
+
+numpy>=1.26
+scipy>=1.11
+soundfile>=0.12       # bundles libsndfile >= 1.2, which decodes and encodes MP3
+pyloudnorm>=0.1.1     # ITU-R BS.1770 integrated loudness
+librosa>=0.10         # tempo + chroma/key estimation

@@ -48,6 +48,17 @@ Use `tools/aimusicmixer` (`POST /mix` with `track1`, `track2`, `crossfade_sec`,
 `tools/claude-ai-music-skills/skills/mix-engineer/` (apply with
 `tools/mixing/mix_tracks.py`). Export the finished track to `out/music/<song-slug>_mix.wav`.
 
+**Single file to "amplify" (no stems needed):** measure, then correct.
+```bash
+pip install -r requirements-music.txt
+python3 scripts/analyze_audio.py public/music/uploads/<song>.mp3
+python3 scripts/enhance_audio.py public/music/uploads/<song>.mp3 \
+  -o out/music/<song>-master.wav --preset amapiano_balanced --report
+python3 scripts/analyze_audio.py out/music/<song>-master.wav   # verify
+```
+Target ~-14 LUFS and ≤ -1.0 dBTP; on bass-heavy material ~-15 LUFS at -1 dBTP is the
+honest maximum, so don't force it or claim a number you didn't measure.
+
 ### Guardrails
 - Never commit audio — `public/music/**` and `out/music/**` contents are git-ignored.
 - Never edit `tools/` (disposable clones); never commit model weights.

@@ -15,6 +15,9 @@
 !/public/music/beats/.gitkeep
 !/out/music/.gitkeep
 
+# ── Arena / connector downloads (copies live in public/music/uploads) ────────
+/google_drive/
+
 # ── Node ─────────────────────────────────────────────────────────────────────
 node_modules/
 .npm/
