@@ -47,6 +47,15 @@ def key_of(meta: dict) -> str:
     return base
 
 
+def tempo_of(meta: dict) -> float:
+    raw = re.sub(r"[^0-9.]", "", str(meta.get("tempo", "")))
+    try:
+        t = float(raw)
+    except ValueError:
+        return 72.0
+    return t if 40 <= t <= 200 else 72.0
+
+
 def progression(text: str, limit: int = 4) -> list[str]:
     """Chords from the first section that has any (usually the chorus)."""
     sections: dict[str, list[str]] = {}
@@ -88,7 +97,7 @@ def read_chart(path: Path) -> dict:
         "title": meta.get("title", path.stem),
         "artist": meta.get("artist", ""),
         "key": key_of(meta),
-        "tempo": float(meta.get("tempo", 72).rstrip("BPM ").strip() or 72),
+        "tempo": tempo_of(meta),
         "progression": progression(text),
     }
 

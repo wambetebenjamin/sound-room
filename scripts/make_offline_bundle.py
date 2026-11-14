@@ -22,6 +22,9 @@ ROOT = Path(__file__).resolve().parent.parent
 DEMOS = ROOT / "demos"
 
 TRACKS = [
+    ("sunday-set/00-complete-set.mp3", "The full Sunday set — 8 minutes",
+     "Three complete arrangements joined with crossfades: Goodness of God (Ab, 63), "
+     "Amazing Grace (Eb, 72), This Is Amazing Grace (G, 98). 52-bar song form each."),
     ("worship-acoustic-backing.mp3", "Acoustic worship backing",
      "D major, 72 BPM. Fingerpicked guitar, felt piano, upright bass, cajon and brushes, "
      "string swells. Every sound synthesised in code — no samples."),
@@ -31,8 +34,6 @@ TRACKS = [
     ("benjamin-original-track.mp3", "Voice over a fully original beat",
      "G minor, 114.8 BPM. A real voice memo plus a beat generated from maths — "
      "100% own production, nothing licensed-in."),
-    ("benjamin-voice-track.mp3", "Voice over an amapiano bed",
-     "G minor, 114.8 BPM. Same vocal over an MIT-licensed loop, for comparison."),
 ]
 
 PAGE = """<!DOCTYPE html>
@@ -105,6 +106,8 @@ CARD = """  <div class="card">
 
 
 def build(out_dir: Path) -> Path:
+    if out_dir.exists():            # stale tracks from an earlier build must not linger
+        shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     cards = []
     copied = 0
@@ -113,7 +116,9 @@ def build(out_dir: Path) -> Path:
         if not src.exists():
             print(f"  skip (missing): {filename}")
             continue
-        shutil.copy2(src, out_dir / filename)
+        dest = out_dir / filename
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest)
         cards.append(CARD.format(title=escape(title), desc=escape(desc), src=escape(filename)))
         copied += 1
 

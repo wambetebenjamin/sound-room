@@ -276,6 +276,24 @@ It reads **only** metadata and chord symbols. Lyrics and melody stay the publish
 copyright and are never read into the output; chord progressions themselves are not
 copyrightable. See `LICENSES.md` before releasing anything built this way.
 
+**A whole set — `scripts/build_worship_set.py`**
+
+Renders three *full-length* arrangements (52-bar song form: intro, verses, choruses,
+bridge, big final chorus, outro ≈ 3 minutes each) and crossfades them into one
+continuous set:
+
+```bash
+python3 scripts/build_worship_set.py              # ~3 min full render
+python3 scripts/build_worship_set.py --reuse      # rejoin existing tracks, ~15 s
+```
+
+Each section restarts the chord loop on its own tonic; the final chorus runs at 1.12x
+energy and the bridge builds from 0.85x, which gives roughly 10 dB of dynamic range.
+Tempos are set explicitly in the `SET` table — charts almost never carry one (577 of
+613 default to 72 BPM). **Do not re-master the joined set**: it is ~8 minutes, and
+float64 + 4x true-peak oversampling exhausts RAM. Join already-mastered tracks in
+float32 and trim one scalar instead.
+
 **Offline presentations — `scripts/make_offline_bundle.py`**
 
 Builds `demos/offline-demo.zip`: a self-contained `index.html` player plus the audio and

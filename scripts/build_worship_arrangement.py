@@ -239,8 +239,13 @@ class Bus:
         self.buf[i:e, 1] += seg * np.sin((pan + 1) * np.pi / 4)
 
 
-def build(key: str = "D", bpm: float = 72.0, bars: int = 12, sr: int = SR,
-          chords: list[str] | None = None) -> np.ndarray:
+DEFAULT_FORM = [("intro", 4), ("verse", 8), ("chorus", 8), ("verse", 8),
+                ("chorus", 8), ("bridge", 4), ("chorus", 8), ("outro", 4)]
+
+
+def build(key: str = "D", bpm: float = 72.0, bars: int | None = 12, sr: int = SR,
+          chords: list[str] | None = None,
+          form: list[tuple[str, int]] | None = None) -> np.ndarray:
     if key.lower().endswith("min"):
         root_name, quality = key[:-3], "min"
     elif key.lower().endswith("maj"):
@@ -267,6 +272,16 @@ def build(key: str = "D", bpm: float = 72.0, bars: int = 12, sr: int = SR,
         chord_of_bar_fn = lambda b: seq[b % len(seq)]
     else:
         chord_of_bar_fn = lambda b: chord(prog[b % 4])
+    # ---- song form: which section each bar belongs to, and where it sits inside it
+    if form is None:
+        form = DEFAULT_FORM if bars is None or bars > 12 else [("intro", 2), ("verse", max(1, bars // 2 - 2)),
+                                                               ("chorus", max(1, bars - bars // 2 - 2)), ("outro", 2)]
+    section_of_bar, bar_in_section = [], []
+    for name, n in form:
+        section_of_bar.extend([name] * n)
+        bar_in_section.extend(range(n))
+    bars = len(section_of_bar)
+
     beat = 60.0 / bpm
     bar = 4 * beat
     total = bars * bar
@@ -274,9 +289,18 @@ def build(key: str = "D", bpm: float = 72.0, bars: int = 12, sr: int = SR,
 
     for b in range(bars):
         t0 = b * bar
-        section = ("intro" if b < 2 else "verse" if b < bars // 2 else
-                   "chorus" if b < bars - 2 else "outro")
-        ch = chord_of_bar_fn(b)
+        section = section_of_bar[b]
+        bis = bar_in_section[b]
+        is_last = b == bars - 1
+        # the progression restarts at each section boundary so verses land on the tonic
+        ch = chord_of_bar_fn(bis)
+        # energy builds across the song: last chorus is the biggest moment
+        energy = 1.12 if (section == "chorus" and b > bars * 0.75) else 1.0
+        if section == "bridge":
+            energy = 0.85 + 0.08 * bis
+
+        def add(snd, tm, pan=0.0, gain=1.0):
+            bus.add(snd, tm, pan=pan, gain=gain * energy)
         bass_note = ch[0] - 12
 
         # ---- fingerpicked acoustic guitar (always present)
@@ -284,50 +308,50 @@ def build(key: str = "D", bpm: float = 72.0, bars: int = 12, sr: int = SR,
         for i, m in enumerate(arp):
             pos = i * beat * 0.5
             g = 0.85 if i % 4 == 0 else 0.62
-            bus.add(guitar(hz(m), min(2.2, bar * 0.7), sr), t0 + pos, pan=-0.45, gain=g)
+            add(guitar(hz(m), min(2.2, bar * 0.7), sr), t0 + pos, pan=-0.45, gain=g)
         # second pass, slightly late and duller = natural double-track width
         for i, m in enumerate(arp):
-            bus.add(guitar(hz(m), 1.8, sr), t0 + i * beat * 0.5 + 0.008, pan=0.5, gain=0.42)
+            add(guitar(hz(m), 1.8, sr), t0 + i * beat * 0.5 + 0.008, pan=0.5, gain=0.42)
 
         # ---- felt piano / Rhodes
         for hit, g in ((0.0, 1.0), (2.0, 0.8)):
             for k, m in enumerate(ch):
                 # root stays low for body, upper voices move up an octave for clarity
                 note = m if k == 0 else m + 12
-                bus.add(felt_piano(hz(note), 2.6, sr), t0 + hit * beat, pan=-0.15 + 0.12 * k, gain=g)
+                add(felt_piano(hz(note), 2.6, sr), t0 + hit * beat, pan=-0.15 + 0.12 * k, gain=g)
         if section in ("chorus", "outro"):
             for m in ch:
-                bus.add(rhodes(hz(m + 12), 1.6, sr), t0, pan=0.3, gain=0.7)
+                add(rhodes(hz(m + 12), 1.6, sr), t0, pan=0.3, gain=0.7)
         if section == "chorus":
-            bus.add(felt_piano(hz(ch[2] + 12), 1.4, sr), t0 + 3.0 * beat, pan=0.1, gain=0.6)
+            add(felt_piano(hz(ch[2] + 12), 1.4, sr), t0 + 3.0 * beat, pan=0.1, gain=0.6)
 
         # ---- upright-style bass
         if section in ("verse", "chorus"):
             for pos, g in ((0.0, 1.0), (2.0, 0.85), (3.5, 0.7)):
-                bus.add(bass(hz(bass_note), 1.5, sr), t0 + pos * beat, gain=g)
+                add(bass(hz(bass_note), 1.5, sr), t0 + pos * beat, gain=g)
 
         # ---- cajon + brushes instead of a drum kit
         if section in ("verse", "chorus"):
             for pos in (0.0, 2.0):
-                bus.add(cajon_bass(sr), t0 + pos * beat, gain=1.0)
+                add(cajon_bass(sr), t0 + pos * beat, gain=1.0)
             for pos in (1.0, 3.0):
-                bus.add(cajon_slap(sr), t0 + pos * beat, pan=0.1, gain=0.9)
+                add(cajon_slap(sr), t0 + pos * beat, pan=0.1, gain=0.9)
             for pos in (1.5, 3.5):
-                bus.add(cajon_slap(sr), t0 + pos * beat, pan=0.15, gain=0.45)
+                add(cajon_slap(sr), t0 + pos * beat, pan=0.15, gain=0.45)
             for i in range(8):
-                bus.add(brushes(sr), t0 + i * beat * 0.5, pan=-0.3,
+                add(brushes(sr), t0 + i * beat * 0.5, pan=-0.3,
                         gain=0.85 if section == "chorus" else 0.55)
 
         # ---- strings and pad swell on the chorus
         if section == "chorus":
             for m in ch:
-                bus.add(strings(hz(m), bar * 0.98, sr), t0, pan=-0.55, gain=0.9)
-                bus.add(strings(hz(m + 12), bar * 0.98, sr), t0 + 0.01, pan=0.55, gain=0.5)
+                add(strings(hz(m), bar * 0.98, sr), t0, pan=-0.55, gain=0.9)
+                add(strings(hz(m + 12), bar * 0.98, sr), t0 + 0.01, pan=0.55, gain=0.5)
             for m in ch:
-                bus.add(pad(hz(m + 12), bar * 1.05, sr), t0, pan=0.0, gain=0.8)
+                add(pad(hz(m + 12), bar * 1.05, sr), t0, pan=0.0, gain=0.8)
         elif section == "outro":
             for m in ch:
-                bus.add(pad(hz(m + 12), bar * 1.05, sr), t0, pan=0.0, gain=0.9)
+                add(pad(hz(m + 12), bar * 1.05, sr), t0, pan=0.0, gain=0.9)
 
     audio = bus.buf[: int(total * sr)]
     from enhance_audio import _biquad
