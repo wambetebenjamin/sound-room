@@ -1,0 +1,50 @@
+# ── Vendored third-party tools ────────────────────────────────────────────────
+# Cloned, not tracked. Keeps nested .git directories out of this repo.
+# Re-create with: ./scripts/setup-tools.sh   (see pin file inside for versions)
+/tools/
+
+# ── Music working directories ────────────────────────────────────────────────
+# The folders are committed (via .gitkeep); their audio contents are not.
+/public/music/uploads/*
+/public/music/stems/*
+/public/music/beats/*
+/out/music/*
+
+!/public/music/uploads/.gitkeep
+!/public/music/stems/.gitkeep
+!/public/music/beats/.gitkeep
+!/out/music/.gitkeep
+
+# ── Node ─────────────────────────────────────────────────────────────────────
+node_modules/
+.npm/
+.next/
+dist/
+build/
+# NB: no bare `out/` pattern here — out/music/ is a tracked project folder.
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Model weights / caches (large, re-downloadable) ──────────────────────────
+/models/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+.cache/
+
+# ── OS / editor ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
