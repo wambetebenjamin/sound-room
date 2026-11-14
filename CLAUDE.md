@@ -10,7 +10,7 @@ change one file, change both.
 
 ## Summary for Claude Code
 
-`sound-room` is an AI music production workspace. `tools/` is git-ignored and holds seven
+`sound-room` is an AI music production workspace. `tools/` is git-ignored and holds nine
 vendored repositories; re-create it with `./scripts/setup-tools.sh`.
 
 ### The three rules
@@ -34,6 +34,13 @@ Use `tools/strudel-claude` (patterns via `npm run dev`), `tools/AI-Beat-Maker`
 `generate_with_chroma(...)`) for beats, basslines, guitar riffs, and string themes.
 Detect BPM/key first (`curl -F file=@<song> localhost:5000/analyze`), and write parts to
 `public/music/beats/<song-slug>/`.
+
+For **Amapiano**, use `tools/amapiano-inspired` (28 MIDI parts at 112 BPM + `catalog/drum-map.csv`
++ `catalog/patch-recipes.json`) and/or the 12 MIT-licensed loops in
+`tools/Amapiano-Beatpad/Assets/`. Time-stretch/retune to the song's tempo and key — the MIDI
+studies are fixed at 112 BPM. The log drum is the signature sound. **License:** the Beatpad
+loops are MIT; the `amapiano-inspired` MIDI is under a proprietary buyer license, so don't
+ship commercial tracks built on it without purchasing the pack.
 
 **3. Blend original + new parts and export to `out/music/`.**
 Use `tools/aimusicmixer` (`POST /mix` with `track1`, `track2`, `crossfade_sec`,

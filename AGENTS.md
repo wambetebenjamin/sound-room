@@ -27,7 +27,7 @@ Re-create `tools/` at any time with `./scripts/setup-tools.sh`.
 
 ## 2. Vendored tools
 
-`tools/` holds seven cloned repositories. Each keeps its own license, `.git` directory,
+`tools/` holds nine cloned repositories. Each keeps its own license, `.git` directory,
 and upstream history; treat them as read-only dependencies.
 
 | Directory | Upstream | Role |
@@ -39,6 +39,8 @@ and upstream history; treat them as read-only dependencies.
 | `tools/audiocraft` | `facebookresearch/audiocraft` | MusicGen / **MusicGen-Melody** generation |
 | `tools/aimusicmixer` | `EnriqueJRZ/aimusicmixer-backend` | Flask service: tempo/key analysis + track blending |
 | `tools/claude-ai-music-skills` | `bitwize-music-studio/claude-ai-music-skills` | Mix/master skill rules + `mix_tracks.py` |
+| `tools/amapiano-inspired` | `mizcausevic-dev/amapiano-inspired` | Amapiano MIDI studies (28 files, 112 BPM) + drum map + patch recipes |
+| `tools/Amapiano-Beatpad` | `Eazyguy/Amapiano-Beatpad` | 12 Amapiano beat loops (`.m4a`), MIT — playable via `index.html` |
 
 Run `./scripts/setup-tools.sh` if `tools/` is empty or a directory is missing.
 
@@ -116,6 +118,48 @@ wav = model.generate_with_chroma(
 ```
 Condition it on a stem of the original (e.g. `other.wav` for strings, the guitar stem
 for riffs) so the generated line follows the existing harmony. GPU strongly recommended.
+
+**Amapiano flavour — `tools/amapiano-inspired` + `tools/Amapiano-Beatpad`**
+
+The genre's identity is the **log drum** (a pitch-gliding sub-bass stab), sparse jazzy
+pads, and a swung 110–115 BPM grid. Two ready sources:
+
+```bash
+# A. MIDI studies: 4 arrangements × 112 BPM (keys C#, E, G, D)
+tools/amapiano-inspired/midi/
+  ap01-room-tone/{drums,sub_bass,chord_pulse,principal_motif,counter_texture,vocal_like_synth}.mid
+  ap01-room-tone/ap01-room-tone-combined.mid     # combined arrangement — never stack
+                                                 # part files on top of this one
+```
+- `catalog/drum-map.csv` documents the kit mapping (36 kick, 38 snare, 39 clap,
+  42 closed hat, 46 open hat) and `catalog/patch-recipes.json` maps each role to a
+  MIDI channel plus its polyphony cap.
+- The MIDI carries **no program changes or samples**, so a generic player substitutes its
+  own sounds. Render it with your own log-drum/bass patches, then retune and retime to the
+  song — the studies are fixed at 112 BPM in a fixed key:
+  ```bash
+  fluidsynth -F /tmp/part.wav <your-logdrum-bank>.sf2 tools/amapiano-inspired/midi/ap01-room-tone/sub_bass.mid
+  # then conform to the song's tempo/key (librosa or ffmpeg):
+  #   librosa.effects.time_stretch(y, rate=112/song_bpm)
+  #   librosa.effects.pitch_shift(y, sr=sr, n_steps=<semitones to song key>)
+  ```
+- `preview/amapiano-inspired-simple-synth-preview.mp3` is reference audio only; the
+  `tools/*.py` scripts build the release and a **video** visualizer, not audio renders.
+
+```bash
+# B. Beat loops: 12 royalty-free .m4a files — fastest route to an Amapiano groove
+ls tools/Amapiano-Beatpad/Assets/          # Beat1.m4a … Beat12.m4a (MIT licensed)
+```
+Time-stretch a loop to the song's BPM (`ffmpeg -i Beat3.m4a -filter:a
+"atempo=<song_bpm/loop_bpm>" out.wav`), then layer it under the drums, and write the
+result to `public/music/beats/<song-slug>/`.
+
+> **Licensing — check before releasing.** `Amapiano-Beatpad` is **MIT** (free, including
+> commercial use). `amapiano-inspired` ships under a **proprietary "MIDI BUYER LICENSE
+> v1.0"** that grants rights only to purchasers of the pack; cloning it for study and
+> reference is fine, but shipping a commercial track built on those MIDI files requires
+> buying the pack. Prefer the MIT loops when the output is going public, and tell the user
+> which source a given beat came from.
 
 Save all generated parts to `public/music/beats/<song-slug>/` with a descriptive name
 (e.g. `bassline_96bpm_Am.wav`).

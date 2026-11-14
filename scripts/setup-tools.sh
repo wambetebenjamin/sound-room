@@ -25,6 +25,9 @@ PINNED=(
   # Upstream history is ~1.5 GB, so this one is pinned shallow.
   "AI-Beat-Maker|https://github.com/guyyariv/AI-Beat-Maker.git|b550b71ee7b136f75dbed4de5116aa89e80b9ddf|master|--depth 1"
   "audiocraft|https://github.com/facebookresearch/audiocraft.git|896ec7c47f5e5d1e5aa1e4b260c4405328bf009d|main|"
+  # Amapiano-specific additions
+  "amapiano-inspired|https://github.com/mizcausevic-dev/amapiano-inspired.git|13d3dc2c84797a03f01d98eb42895479d344d2c5|main|"
+  "Amapiano-Beatpad|https://github.com/Eazyguy/Amapiano-Beatpad.git|56ae185d9d854fc8e005b34f0453ee25ff00892c|main|"
 )
 
 mkdir -p "$TOOLS"
