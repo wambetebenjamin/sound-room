@@ -32,6 +32,10 @@ PINNED=(
   "church-music-generator|https://github.com/nrutman/church-music-generator.git|9f3714ca4f0be4c4fec9d9c3db7c878376da9ed1|main|"
   "ambientpad|https://github.com/OliverGentina/ambientpad.git|218f5ea76262dd5efb362bb99eceb2e8a53c5d21|main|--depth 1"
   "Le-Phonk|https://github.com/Speechrezz/Le-Phonk.git|36b9b61673e5fab531b4779712c2faf01f4e3fae|main|"
+  # Acoustic-worship references (unlicensed: study only, see AGENTS.md)
+  "javascript-karplus-strong|https://github.com/mrahtz/javascript-karplus-strong.git|20b2a3d1d6e1adab93b11e60c22cc1bc0257bf87|master|"
+  "EKS-string-generator|https://github.com/marcociccone/EKS-string-generator.git|2d0bd0529763737cfe90bb643f708eea8f90c692|master|"
+  "worship-charts|https://github.com/mattgraham/worship.git|f0405fa7c65d26cbb2c513bb94a25dd1e2ec2953|master|"
 )
 
 mkdir -p "$TOOLS"

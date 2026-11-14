@@ -189,7 +189,14 @@ class Track:
 
 
 def build(bpm: float, key: str, bars: int, sr: int = SR) -> np.ndarray:
-    root_name, quality = key[:-1], ("min" if key[-1].lower() == "m" else "maj")
+    if key.lower().endswith("min"):
+        root_name, quality = key[:-3], "min"
+    elif key.lower().endswith("maj"):
+        root_name, quality = key[:-3], "maj"
+    elif key.endswith("m") and len(key) > 1:
+        root_name, quality = key[:-1], "min"
+    else:
+        root_name, quality = key, "maj"
     root = midi(root_name + "3")
     scale = [(root + i) for i in SCALES[quality]]
 

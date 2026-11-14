@@ -27,7 +27,7 @@ Re-create `tools/` at any time with `./scripts/setup-tools.sh`.
 
 ## 2. Vendored tools
 
-`tools/` holds thirteen cloned repositories. Each keeps its own license, `.git` directory,
+`tools/` holds sixteen cloned repositories. Each keeps its own license, `.git` directory,
 and upstream history; treat them as read-only dependencies.
 
 | Directory | Upstream | Role |
@@ -44,6 +44,9 @@ and upstream history; treat them as read-only dependencies.
 | `tools/church-music-generator` | `nrutman/church-music-generator` | Chord/lyric sheets + service binders, **MIT** |
 | `tools/ambientpad` | `OliverGentina/ambientpad` | 24 worship pads as an offline-capable PWA — **no licence: live use only, never sample it into a release** |
 | `tools/Le-Phonk` | `Speechrezz/Le-Phonk` | Phonk distortion plugin, **MIT** — needs a DAW, not usable headless |
+| `tools/javascript-karplus-strong` | `mrahtz/javascript-karplus-strong` | Karplus-Strong guitar in Web Audio — **no licence: reference only** |
+| `tools/EKS-string-generator` | `marcociccone/EKS-string-generator` | Extended Karplus-Strong in Python — **no licence: reference only** |
+| `tools/worship-charts` | `mattgraham/worship` | 677 worship chord charts (`.onsong`) — **songs remain publisher copyright** |
 
 Run `./scripts/setup-tools.sh` if `tools/` is empty or a directory is missing.
 
@@ -240,6 +243,23 @@ python3 scripts/build_voice_track.py --voice public/music/uploads/song.mp3 \
 licence permits commercial use (MIT). Do not ship anything built from unlicensed sample packs
 (e.g. `Phonk_Producer_Toolkit`), and never sample `tools/ambientpad` into a release.
 See `OFFLINE.md` for running this with no internet, and `scripts/offline_check.py` to verify.
+
+**Acoustic / worship backing — `scripts/build_worship_arrangement.py`**
+
+For a stripped-back Hillsong-style set: fingerpicked Karplus-Strong guitar, felt piano,
+Rhodes, upright-style bass, cajon + brushes instead of a kit, string swells and a long
+hall reverb. Enters intro → verse → chorus → outro automatically.
+
+```bash
+python3 scripts/build_worship_arrangement.py -o public/music/beats/worship.wav \
+  --key D --bpm 72 --bars 12      # key accepts D, Bb, Gm, F#min ...
+```
+
+The guitar is high-passed at 150 Hz and the piano voiced up an octave so the 100–250 Hz
+band stays clear for a lead vocal. Always check the vocal's key with `analyze_audio.py`
+first and generate in that key — a semitone clash is the worst failure mode.
+`tools/worship-charts` has 677 reference chord charts, but those songs stay the
+publishers' copyright; use them to learn structure, not to redistribute.
 
 `build_voice_track.py` does the end-to-end version of this for a voice memo: it cleans
 the vocal, picks a bed loop by measured tempo/key/chroma match, arranges intro/vocal/outro
